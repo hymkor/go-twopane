@@ -94,17 +94,15 @@ func Main(nodes []Node) error {
 	defer fmt.Fprint(out, CURSOR_ON)
 
 	for {
-		y := view(nodes, width, viewheight, top, current, out) + 1
-		fmt.Fprint(out, "\n\x1B[44;30m\x1B[0K\x1B[0m\n")
+		y := view(nodes, width, viewheight, top, current, out)
+		fmt.Fprint(out, "\n\x1B[44;30m\x1B[0K\x1B[0m")
 
-		for i, s := range nodes[current].Contents() {
-			if y >= height {
+		for _, s := range nodes[current].Contents() {
+			if y >= height-1 {
 				break
 			}
-			if i > 0 {
-				fmt.Fprintln(out)
-				y++
-			}
+			fmt.Fprintln(out)
+			y++
 			fmt.Fprint(out, runewidth.Truncate(s, width-1, ""))
 			fmt.Fprint(out, ERASE_LINE)
 		}
