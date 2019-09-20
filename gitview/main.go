@@ -10,62 +10,72 @@ import (
 	"github.com/zetamatta/twopainview"
 )
 
-type Commit struct {
+type Row struct {
 	commit   string
 	title    string
 	contents []string
 }
 
-func (this *Commit) Title() string {
+func (this *Row) Title() string {
 	return this.title
 }
 
-func (this *Commit) Contents() []string {
-	if this.contents == nil {
-		cmd := exec.Command("git", "show", this.commit)
-		in, err := cmd.StdoutPipe()
-		if err != nil {
-			this.contents = []string{err.Error()}
-			return this.contents
-		}
-		err = cmd.Start()
-		if err != nil {
-			this.contents = []string{err.Error()}
-			return this.contents
-		}
-		sc := bufio.NewScanner(in)
-		for sc.Scan() {
-			this.contents = append(this.contents, sc.Text())
-		}
-		cmd.Wait()
-		in.Close()
-	}
-	return this.contents
-}
-
-func main1() error {
-	commits := []twopainview.Row{}
-	cmd := exec.Command("git", "log", "-n", "100", "--pretty=format:%H\t%h %s")
-
+func fetchOutput(cmd *exec.Cmd, callback func(text string)) error {
 	in, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
 	}
-	if err := cmd.Start(); err != nil {
+	defer in.Close()
+
+	err = cmd.Start()
+	if err != nil {
 		return err
 	}
+	defer cmd.Wait()
+
 	sc := bufio.NewScanner(in)
 	for sc.Scan() {
-		text := sc.Text()
+		callback(sc.Text())
+	}
+	return nil
+}
+
+func (this *Row) Contents() []string {
+	if this.contents == nil {
+		cmd := exec.Command("git", "show", this.commit)
+		err := fetchOutput(cmd, func(text string) {
+			this.contents = append(this.contents, text)
+		})
+		if err != nil {
+			this.contents = []string{err.Error()}
+		}
+	}
+	return this.contents
+}
+
+func makeRows() ([]twopainview.Row, error) {
+	rows := []twopainview.Row{}
+	cmd := exec.Command("git", "log", "-n", "100", "--pretty=format:%H\t%h %s")
+
+	err := fetchOutput(cmd, func(text string) {
 		field := strings.Split(text, "\t")
-		commits = append(commits, &Commit{
+		rows = append(rows, &Row{
 			commit: field[0],
 			title:  field[1],
 		})
+	})
+	if err != nil {
+		return nil, err
 	}
-	cmd.Wait()
-	in.Close()
-	return twopainview.Window{Rows: commits}.Run()
+	return rows, nil
+}
+
+func main1() error {
+	rows, err := makeRows()
+	if err != nil {
+		return err
+	}
+	return twopainview.Window{Rows: rows}.Run()
 }
 
 func main() {
