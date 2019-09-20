@@ -77,6 +77,7 @@ type Window struct {
 	Rows       []Row
 	ViewHeight int
 	Handler    func(string) bool
+	Clear      bool
 }
 
 func (w Window) Run() error {
@@ -100,6 +101,10 @@ func (w Window) Run() error {
 	out := colorable.NewColorableStdout()
 	fmt.Fprint(out, CURSOR_OFF)
 	defer fmt.Fprint(out, CURSOR_ON)
+
+	if w.Clear {
+		fmt.Print("\x1B[2J\x1B[H")
+	}
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
