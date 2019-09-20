@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/zetamatta/twopainview"
+	"github.com/zetamatta/go-twopane"
 )
 
 type Row struct {
@@ -53,8 +53,8 @@ func (this *Row) Contents() []string {
 	return this.contents
 }
 
-func makeRows() ([]twopainview.Row, error) {
-	rows := []twopainview.Row{}
+func makeRows() ([]twopane.Row, error) {
+	rows := []twopane.Row{}
 	cmd := exec.Command("git", "log", "-n", "100", "--pretty=format:%H\t%h %s")
 
 	err := fetchOutput(cmd, func(text string) {
@@ -75,7 +75,7 @@ func main1() error {
 	if err != nil {
 		return err
 	}
-	return twopainview.Window{Rows: rows}.Run()
+	return twopane.View{Rows: rows}.Run()
 }
 
 func main() {

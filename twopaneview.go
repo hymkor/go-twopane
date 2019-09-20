@@ -1,4 +1,4 @@
-package twopainview
+package twopane
 
 import (
 	"fmt"
@@ -73,14 +73,14 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 	return height
 }
 
-type Window struct {
+type View struct {
 	Rows       []Row
 	ViewHeight int
 	Handler    func(string) bool
 	Clear      bool
 }
 
-func (w Window) Run() error {
+func (w View) Run() error {
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
