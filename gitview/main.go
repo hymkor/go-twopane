@@ -65,7 +65,7 @@ func main1() error {
 	}
 	cmd.Wait()
 	in.Close()
-	return twopainview.Main(commits, 15)
+	return twopainview.Window{Nodes: commits}.Run()
 }
 
 func main() {

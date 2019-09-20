@@ -73,7 +73,13 @@ func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
 	return height
 }
 
-func Main(nodes []Node, viewHeight int) error {
+type Window struct {
+	Nodes      []Node
+	ViewHeight int
+	Handler    func(string) bool
+}
+
+func (w Window) Run() error {
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
@@ -86,7 +92,10 @@ func Main(nodes []Node, viewHeight int) error {
 	}
 	top := 0
 	current := 0
-	listHeight := height - viewHeight
+	if w.ViewHeight == 0 {
+		w.ViewHeight = height / 2
+	}
+	listHeight := height - w.ViewHeight
 
 	out := colorable.NewColorableStdout()
 	fmt.Fprint(out, CURSOR_OFF)
@@ -94,10 +103,10 @@ func Main(nodes []Node, viewHeight int) error {
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
-		y := view(nodes, width, listHeight, top, current, out)
+		y := view(w.Nodes, width, listHeight, top, current, out)
 		fmt.Fprint(out, hr)
 
-		for _, s := range nodes[current].Contents() {
+		for _, s := range w.Nodes[current].Contents() {
 			if y >= height-1 {
 				break
 			}
@@ -113,7 +122,7 @@ func Main(nodes []Node, viewHeight int) error {
 		}
 		switch key {
 		case "j", "\x0E", "\x1B[B":
-			if current < len(nodes)-1 {
+			if current < len(w.Nodes)-1 {
 				current++
 				if current >= top+listHeight {
 					top++
@@ -129,6 +138,11 @@ func Main(nodes []Node, viewHeight int) error {
 		case "q", "\x1B":
 			fmt.Fprintln(out)
 			return nil
+		default:
+			if w.Handler != nil && !w.Handler(key) {
+				fmt.Fprintln(out)
+				return nil
+			}
 		}
 		fmt.Fprintf(out, UP_N, y)
 	}
