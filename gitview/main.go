@@ -22,7 +22,7 @@ func (this *Commit) Title() string {
 
 func (this *Commit) Contents() []string {
 	if this.contents == nil {
-		cmd := exec.Command("git", "show", "-q", this.commit)
+		cmd := exec.Command("git", "show", this.commit)
 		in, err := cmd.StdoutPipe()
 		if err != nil {
 			this.contents = []string{err.Error()}
