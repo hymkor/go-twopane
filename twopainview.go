@@ -112,21 +112,21 @@ func Main(nodes []Node, viewHeight int) error {
 			return err
 		}
 		switch key {
-		case "j":
+		case "j", "\x0E", "\x1B[B":
 			if current < len(nodes)-1 {
 				current++
 				if current >= top+listHeight {
 					top++
 				}
 			}
-		case "k":
+		case "k", "\x10", "\x1B[A":
 			if current > 0 {
 				current--
 				if current < top {
 					top--
 				}
 			}
-		case "q":
+		case "q", "\x1B":
 			fmt.Fprintln(out)
 			return nil
 		}
