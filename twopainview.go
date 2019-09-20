@@ -45,8 +45,7 @@ type Node interface {
 const (
 	CURSOR_OFF = "\x1B[?25l"
 	CURSOR_ON  = "\x1B[?25h"
-	BOLD_ON    = "\x1B[0;47;30m"
-	BOLD_ON2   = "\x1B[0;1;7m"
+	BOLD_ON    = "\x1B[0;44;37;1m"
 	BOLD_OFF   = "\x1B[0m"
 	UP_N       = "\x1B[%dA\r"
 	ERASE_LINE = "\x1B[0K"
@@ -66,10 +65,10 @@ func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
 			fmt.Fprint(w, BOLD_ON)
 		}
 		fmt.Fprint(w, runewidth.Truncate(strings.TrimSpace(title), width-1, ""))
+		fmt.Fprint(w, ERASE_LINE)
 		if y == curr {
 			fmt.Fprint(w, BOLD_OFF)
 		}
-		fmt.Fprint(w, ERASE_LINE)
 	}
 	return height
 }
@@ -93,9 +92,10 @@ func Main(nodes []Node, viewHeight int) error {
 	fmt.Fprint(out, CURSOR_OFF)
 	defer fmt.Fprint(out, CURSOR_ON)
 
+	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
 		y := view(nodes, width, listHeight, top, current, out)
-		fmt.Fprint(out, "\n\x1B[44;30m\x1B[0K\x1B[0m")
+		fmt.Fprint(out, hr)
 
 		for _, s := range nodes[current].Contents() {
 			if y >= height-1 {
