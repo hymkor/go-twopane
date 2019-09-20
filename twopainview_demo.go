@@ -30,7 +30,7 @@ func main() {
 		nodes = append(nodes, nodeT(fmt.Sprintf("[%05d]", i)))
 	}
 
-	err := twopainview.Main(nodes)
+	err := twopainview.Main(nodes, 5)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}

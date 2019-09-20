@@ -74,7 +74,7 @@ func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
 	return height
 }
 
-func Main(nodes []Node) error {
+func Main(nodes []Node, viewHeight int) error {
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
@@ -87,14 +87,14 @@ func Main(nodes []Node) error {
 	}
 	top := 0
 	current := 0
-	viewheight := height / 2
+	listHeight := height - viewHeight
 
 	out := colorable.NewColorableStdout()
 	fmt.Fprint(out, CURSOR_OFF)
 	defer fmt.Fprint(out, CURSOR_ON)
 
 	for {
-		y := view(nodes, width, viewheight, top, current, out)
+		y := view(nodes, width, listHeight, top, current, out)
 		fmt.Fprint(out, "\n\x1B[44;30m\x1B[0K\x1B[0m")
 
 		for _, s := range nodes[current].Contents() {
@@ -115,7 +115,7 @@ func Main(nodes []Node) error {
 		case "j":
 			if current < len(nodes)-1 {
 				current++
-				if current >= top+viewheight {
+				if current >= top+listHeight {
 					top++
 				}
 			}
