@@ -44,7 +44,7 @@ func (this *Commit) Contents() []string {
 }
 
 func main1() error {
-	commits := []twopainview.Node{}
+	commits := []twopainview.Row{}
 	cmd := exec.Command("git", "log", "-n", "100", "--pretty=format:%H\t%h %s")
 
 	in, err := cmd.StdoutPipe()
@@ -65,7 +65,7 @@ func main1() error {
 	}
 	cmd.Wait()
 	in.Close()
-	return twopainview.Window{Nodes: commits}.Run()
+	return twopainview.Window{Rows: commits}.Run()
 }
 
 func main() {

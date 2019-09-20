@@ -37,7 +37,7 @@ func getKey(tty1 *tty.TTY) (string, error) {
 	}
 }
 
-type Node interface {
+type Row interface {
 	Title() string
 	Contents() []string
 }
@@ -51,7 +51,7 @@ const (
 	ERASE_LINE = "\x1B[0K"
 )
 
-func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
+func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 	newline := ""
 	for i := 0; i < height; i++ {
 		y := top + i
@@ -74,7 +74,7 @@ func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
 }
 
 type Window struct {
-	Nodes      []Node
+	Rows       []Row
 	ViewHeight int
 	Handler    func(string) bool
 }
@@ -103,10 +103,10 @@ func (w Window) Run() error {
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
-		y := view(w.Nodes, width, listHeight, top, current, out)
+		y := view(w.Rows, width, listHeight, top, current, out)
 		fmt.Fprint(out, hr)
 
-		for _, s := range w.Nodes[current].Contents() {
+		for _, s := range w.Rows[current].Contents() {
 			if y >= height-1 {
 				break
 			}
@@ -122,7 +122,7 @@ func (w Window) Run() error {
 		}
 		switch key {
 		case "j", "\x0E", "\x1B[B":
-			if current < len(w.Nodes)-1 {
+			if current < len(w.Rows)-1 {
 				current++
 				if current >= top+listHeight {
 					top++
