@@ -52,12 +52,12 @@ const (
 	ERASE_LINE = "\x1B[0K"
 )
 
-func view(nodes []Node, width, height, top, curr int, w io.Writer) {
+func view(nodes []Node, width, height, top, curr int, w io.Writer) int {
 	newline := ""
 	for i := 0; i < height; i++ {
 		y := top + i
 		if y >= len(nodes) {
-			break
+			return i
 		}
 		fmt.Fprint(w, newline)
 		newline = "\n"
@@ -65,12 +65,13 @@ func view(nodes []Node, width, height, top, curr int, w io.Writer) {
 		if y == curr {
 			fmt.Fprint(w, BOLD_ON)
 		}
-		fmt.Fprint(w, runewidth.Truncate(title, width-1, ""))
+		fmt.Fprint(w, runewidth.Truncate(strings.TrimSpace(title), width-1, ""))
 		if y == curr {
 			fmt.Fprint(w, BOLD_OFF)
 		}
 		fmt.Fprint(w, ERASE_LINE)
 	}
+	return height
 }
 
 func Main(nodes []Node) error {
@@ -93,10 +94,9 @@ func Main(nodes []Node) error {
 	defer fmt.Fprint(out, CURSOR_ON)
 
 	for {
-		view(nodes, width, viewheight, top, current, out)
-		fmt.Fprint(out, "\n\x1B[47;30m\x1B[0K\x1B[0m\n")
+		y := view(nodes, width, viewheight, top, current, out) + 1
+		fmt.Fprint(out, "\n\x1B[44;30m\x1B[0K\x1B[0m\n")
 
-		y := viewheight + 1
 		for i, s := range nodes[current].Contents() {
 			if y >= height {
 				break
@@ -106,8 +106,8 @@ func Main(nodes []Node) error {
 				y++
 			}
 			fmt.Fprint(out, runewidth.Truncate(s, width-1, ""))
+			fmt.Fprint(out, ERASE_LINE)
 		}
-		fmt.Fprintf(out, UP_N, y)
 
 		key, err := getKey(tty1)
 		if err != nil {
@@ -129,7 +129,9 @@ func Main(nodes []Node) error {
 				}
 			}
 		case "q":
+			fmt.Fprintln(out)
 			return nil
 		}
+		fmt.Fprintf(out, UP_N, y)
 	}
 }
