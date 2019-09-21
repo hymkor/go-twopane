@@ -61,6 +61,9 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 		fmt.Fprint(w, newline)
 		newline = "\n"
 		title := nodes[y].Title()
+		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
+			title = title[:index]
+		}
 		if y == curr {
 			fmt.Fprint(w, BOLD_ON)
 		}
