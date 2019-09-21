@@ -76,10 +76,16 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 	return height
 }
 
+type Param struct {
+	*View
+	Key    string
+	Cursor int
+}
+
 type View struct {
 	Rows       []Row
 	ViewHeight int
-	Handler    func(*View, string) bool
+	Handler    func(*Param) bool
 	Clear      bool
 	Out        io.Writer
 }
@@ -162,9 +168,16 @@ func (w View) Run() error {
 			fmt.Fprintln(w.Out)
 			return nil
 		default:
-			if w.Handler != nil && !w.Handler(&w, key) {
-				fmt.Fprintln(w.Out)
-				return nil
+			if w.Handler != nil {
+				param := &Param{
+					View:   &w,
+					Key:    key,
+					Cursor: current,
+				}
+				if !w.Handler(param) {
+					fmt.Fprintln(w.Out)
+					return nil
+				}
 			}
 		}
 		fmt.Fprintf(w.Out, UP_N, y)
