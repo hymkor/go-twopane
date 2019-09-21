@@ -118,15 +118,27 @@ func (w View) Run() error {
 		fmt.Fprint(w.Out, hr)
 
 		for _, s := range w.Rows[current].Contents() {
-			if y >= height-1 {
-				break
+			for {
+				if y >= height-1 {
+					goto viewEnd
+				}
+				fmt.Fprintln(w.Out)
+				y++
+				line := runewidth.Truncate(s, width-1, "")
+				fmt.Fprint(w.Out, line)
+				fmt.Fprint(w.Out, ERASE_LINE)
+				if len(s) <= len(line) {
+					break
+				}
+				s = s[len(line):]
 			}
-			fmt.Fprintln(w.Out)
-			y++
-			fmt.Fprint(w.Out, runewidth.Truncate(s, width-1, ""))
-			fmt.Fprint(w.Out, ERASE_LINE)
 		}
-
+		for y < height-1 {
+			fmt.Fprintln(w.Out)
+			fmt.Fprint(w.Out, ERASE_LINE)
+			y++
+		}
+	viewEnd:
 		key, err := getKey(tty1)
 		if err != nil {
 			return err
