@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"unicode"
 
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-runewidth"
@@ -51,6 +52,27 @@ const (
 	ERASE_LINE = "\x1B[0K"
 )
 
+func truncate(s string, max int) string {
+	w := 0
+	escape := false
+	for i, c := range s {
+		if escape {
+			if unicode.IsLower(c) || unicode.IsUpper(c) {
+				escape = false
+			}
+		} else if c == '\x1B' {
+			escape = true
+		} else {
+			w1 := runewidth.RuneWidth(c)
+			if w+w1 > max {
+				return s[:i]
+			}
+			w += w1
+		}
+	}
+	return s
+}
+
 func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 	newline := ""
 	for i := 0; i < height; i++ {
@@ -67,7 +89,7 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 		if y == curr {
 			fmt.Fprint(w, BOLD_ON)
 		}
-		fmt.Fprint(w, runewidth.Truncate(strings.TrimSpace(title), width-1, ""))
+		fmt.Fprint(w, truncate(strings.TrimSpace(title), width-1))
 		fmt.Fprint(w, ERASE_LINE)
 		if y == curr {
 			fmt.Fprint(w, BOLD_OFF)
@@ -130,7 +152,7 @@ func (w View) Run() error {
 				}
 				fmt.Fprintln(w.Out)
 				y++
-				line := runewidth.Truncate(s, width-1, "")
+				line := truncate(s, width-1)
 				fmt.Fprint(w.Out, line)
 				fmt.Fprint(w.Out, ERASE_LINE)
 				if len(s) <= len(line) {
