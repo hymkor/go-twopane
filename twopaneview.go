@@ -76,8 +76,9 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 type View struct {
 	Rows       []Row
 	ViewHeight int
-	Handler    func(string) bool
+	Handler    func(*View, string) bool
 	Clear      bool
+	Out        io.Writer
 }
 
 func (w View) Run() error {
@@ -98,9 +99,11 @@ func (w View) Run() error {
 	}
 	listHeight := height - w.ViewHeight
 
-	out := colorable.NewColorableStdout()
-	fmt.Fprint(out, CURSOR_OFF)
-	defer fmt.Fprint(out, CURSOR_ON)
+	if w.Out == nil {
+		w.Out = colorable.NewColorableStdout()
+	}
+	fmt.Fprint(w.Out, CURSOR_OFF)
+	defer fmt.Fprint(w.Out, CURSOR_ON)
 
 	if w.Clear {
 		fmt.Print("\x1B[2J\x1B[H")
@@ -108,17 +111,17 @@ func (w View) Run() error {
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
-		y := view(w.Rows, width, listHeight, top, current, out)
-		fmt.Fprint(out, hr)
+		y := view(w.Rows, width, listHeight, top, current, w.Out)
+		fmt.Fprint(w.Out, hr)
 
 		for _, s := range w.Rows[current].Contents() {
 			if y >= height-1 {
 				break
 			}
-			fmt.Fprintln(out)
+			fmt.Fprintln(w.Out)
 			y++
-			fmt.Fprint(out, runewidth.Truncate(s, width-1, ""))
-			fmt.Fprint(out, ERASE_LINE)
+			fmt.Fprint(w.Out, runewidth.Truncate(s, width-1, ""))
+			fmt.Fprint(w.Out, ERASE_LINE)
 		}
 
 		key, err := getKey(tty1)
@@ -141,14 +144,14 @@ func (w View) Run() error {
 				}
 			}
 		case "q", "\x1B":
-			fmt.Fprintln(out)
+			fmt.Fprintln(w.Out)
 			return nil
 		default:
-			if w.Handler != nil && !w.Handler(key) {
-				fmt.Fprintln(out)
+			if w.Handler != nil && !w.Handler(&w, key) {
+				fmt.Fprintln(w.Out)
 				return nil
 			}
 		}
-		fmt.Fprintf(out, UP_N, y)
+		fmt.Fprintf(w.Out, UP_N, y)
 	}
 }
