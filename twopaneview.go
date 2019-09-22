@@ -11,7 +11,14 @@ import (
 	"github.com/mattn/go-tty"
 )
 
+var unGetKey string
+
 func getKey(tty1 *tty.TTY) (string, error) {
+	if unGetKey != "" {
+		rv := unGetKey
+		unGetKey = ""
+		return rv, nil
+	}
 	clean, err := tty1.Raw()
 	if err != nil {
 		return "", err
@@ -98,18 +105,19 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 	return height
 }
 
-type Param struct {
-	*View
-	Key    string
-	Cursor int
-}
-
 type View struct {
 	Rows       []Row
 	ViewHeight int
 	Handler    func(*Param) bool
 	Clear      bool
 	Out        io.Writer
+}
+
+type Param struct {
+	*View
+	Key    string
+	Cursor int
+	tty    *tty.TTY
 }
 
 func (w View) Run() error {
@@ -195,6 +203,7 @@ func (w View) Run() error {
 					View:   &w,
 					Key:    key,
 					Cursor: current,
+					tty:    tty1,
 				}
 				if !w.Handler(param) {
 					fmt.Fprintln(w.Out)
@@ -204,4 +213,16 @@ func (w View) Run() error {
 		}
 		fmt.Fprintf(w.Out, UP_N, y)
 	}
+}
+
+func (p *Param) GetKey() (string, error) {
+	return getKey(p.tty)
+}
+
+func (p *Param) UnGetKey(s string) {
+	unGetKey = s
+}
+
+func (p *Param) Message(s string) {
+	fmt.Fprintf(p.Out, "\r%s%s", s, ERASE_LINE)
 }
