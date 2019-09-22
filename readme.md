@@ -3,7 +3,7 @@
 Two pane text viewing library for Go
 ===================================
 
-```
+```go
 package main
 
 import (
