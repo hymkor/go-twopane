@@ -1,6 +1,7 @@
 package twopane
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -133,7 +134,12 @@ type Param struct {
 	tty    *tty.TTY
 }
 
+var ErrNoRows = errors.New("no rows")
+
 func (v View) Run() error {
+	if len(v.Rows) <= 0 {
+		return ErrNoRows
+	}
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
