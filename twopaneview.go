@@ -109,7 +109,7 @@ type View struct {
 	Rows       []Row
 	ViewHeight int
 	Handler    func(*Param) bool
-	Clear      bool
+	Clear      bool // deprecated
 	Out        io.Writer
 }
 
@@ -143,10 +143,6 @@ func (w View) Run() error {
 	}
 	fmt.Fprint(w.Out, _CURSOR_OFF)
 	defer fmt.Fprint(w.Out, _CURSOR_ON)
-
-	if w.Clear {
-		fmt.Print("\x1B[2J\x1B[H")
-	}
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
