@@ -80,25 +80,25 @@ func truncate(s string, max int) string {
 	return s
 }
 
-func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
+func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
 	newline := ""
 	for i := 0; i < height; i++ {
-		y := top + i
-		if y >= len(nodes) {
+		y := head + i
+		if y >= len(rows) {
 			return i
 		}
 		fmt.Fprint(w, newline)
 		newline = "\n"
-		title := nodes[y].Title()
+		title := rows[y].Title()
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
 		}
-		if y == curr {
+		if y == cursor {
 			fmt.Fprint(w, _BOLD_ON)
 		}
 		fmt.Fprint(w, truncate(strings.TrimSpace(title), width-1))
 		fmt.Fprint(w, _ERASE_LINE)
-		if y == curr {
+		if y == cursor {
 			fmt.Fprint(w, _BOLD_OFF)
 		}
 	}
@@ -120,7 +120,7 @@ type Param struct {
 	tty    *tty.TTY
 }
 
-func (w View) Run() error {
+func (v View) Run() error {
 	tty1, err := tty.Open()
 	if err != nil {
 		return err
@@ -131,34 +131,34 @@ func (w View) Run() error {
 	if err != nil {
 		return err
 	}
-	top := 0
-	current := 0
-	if w.ViewHeight == 0 {
-		w.ViewHeight = height / 2
+	head := 0
+	cursor := 0
+	if v.ViewHeight == 0 {
+		v.ViewHeight = height / 2
 	}
-	listHeight := height - w.ViewHeight
+	listHeight := height - v.ViewHeight
 
-	if w.Out == nil {
-		w.Out = colorable.NewColorableStdout()
+	if v.Out == nil {
+		v.Out = colorable.NewColorableStdout()
 	}
-	fmt.Fprint(w.Out, _CURSOR_OFF)
-	defer fmt.Fprint(w.Out, _CURSOR_ON)
+	fmt.Fprint(v.Out, _CURSOR_OFF)
+	defer fmt.Fprint(v.Out, _CURSOR_ON)
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
-		y := view(w.Rows, width, listHeight, top, current, w.Out)
-		fmt.Fprint(w.Out, hr)
+		y := view(v.Rows, width, listHeight, head, cursor, v.Out)
+		fmt.Fprint(v.Out, hr)
 
-		for _, s := range w.Rows[current].Contents() {
+		for _, s := range v.Rows[cursor].Contents() {
 			for {
 				if y >= height-1 {
 					goto viewEnd
 				}
-				fmt.Fprintln(w.Out)
+				fmt.Fprintln(v.Out)
 				y++
 				line := truncate(s, width-1)
-				fmt.Fprint(w.Out, line)
-				fmt.Fprint(w.Out, _ERASE_LINE)
+				fmt.Fprint(v.Out, line)
+				fmt.Fprint(v.Out, _ERASE_LINE)
 				if len(s) <= len(line) {
 					break
 				}
@@ -166,8 +166,8 @@ func (w View) Run() error {
 			}
 		}
 		for y < height-1 {
-			fmt.Fprintln(w.Out)
-			fmt.Fprint(w.Out, _ERASE_LINE)
+			fmt.Fprintln(v.Out)
+			fmt.Fprint(v.Out, _ERASE_LINE)
 			y++
 		}
 	viewEnd:
@@ -177,37 +177,37 @@ func (w View) Run() error {
 		}
 		switch key {
 		case "j", "\x0E", "\x1B[B":
-			if current < len(w.Rows)-1 {
-				current++
-				if current >= top+listHeight {
-					top++
+			if cursor < len(v.Rows)-1 {
+				cursor++
+				if cursor >= head+listHeight {
+					head++
 				}
 			}
 		case "k", "\x10", "\x1B[A":
-			if current > 0 {
-				current--
-				if current < top {
-					top--
+			if cursor > 0 {
+				cursor--
+				if cursor < head {
+					head--
 				}
 			}
 		case "q", "\x1B":
-			fmt.Fprintln(w.Out)
+			fmt.Fprintln(v.Out)
 			return nil
 		default:
-			if w.Handler != nil {
+			if v.Handler != nil {
 				param := &Param{
-					View:   &w,
+					View:   &v,
 					Key:    key,
-					Cursor: current,
+					Cursor: cursor,
 					tty:    tty1,
 				}
-				if !w.Handler(param) {
-					fmt.Fprintln(w.Out)
+				if !v.Handler(param) {
+					fmt.Fprintln(v.Out)
 					return nil
 				}
 			}
 		}
-		fmt.Fprintf(w.Out, _UP_N, y)
+		fmt.Fprintf(v.Out, _UP_N, y)
 	}
 }
 
