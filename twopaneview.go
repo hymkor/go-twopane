@@ -135,6 +135,7 @@ type View struct {
 	Clear      bool // deprecated
 	Out        io.Writer
 	Reverse    bool
+	Cursor     int
 }
 
 // Param is the parameters for the function called back from View.Run
@@ -164,7 +165,7 @@ func (v View) Run() error {
 		return err
 	}
 	head := 0
-	cursor := 0
+	cursor := v.Cursor
 	if v.ViewHeight == 0 {
 		v.ViewHeight = height / 2
 	}
