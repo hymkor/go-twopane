@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/zetamatta/go-twopane?status.svg)](https://godoc.org/github.com/zetamatta/go-twopane)
+
 Two pane text viewing library for Go
 ===================================
 
