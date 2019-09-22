@@ -51,12 +51,12 @@ type Row interface {
 }
 
 const (
-	CURSOR_OFF = "\x1B[?25l"
-	CURSOR_ON  = "\x1B[?25h"
-	BOLD_ON    = "\x1B[0;44;37;1m"
-	BOLD_OFF   = "\x1B[0m"
-	UP_N       = "\x1B[%dA\r"
-	ERASE_LINE = "\x1B[0K"
+	_CURSOR_OFF = "\x1B[?25l"
+	_CURSOR_ON  = "\x1B[?25h"
+	_BOLD_ON    = "\x1B[0;44;37;1m"
+	_BOLD_OFF   = "\x1B[0m"
+	_UP_N       = "\x1B[%dA\r"
+	_ERASE_LINE = "\x1B[0K"
 )
 
 func truncate(s string, max int) string {
@@ -94,12 +94,12 @@ func view(nodes []Row, width, height, top, curr int, w io.Writer) int {
 			title = title[:index]
 		}
 		if y == curr {
-			fmt.Fprint(w, BOLD_ON)
+			fmt.Fprint(w, _BOLD_ON)
 		}
 		fmt.Fprint(w, truncate(strings.TrimSpace(title), width-1))
-		fmt.Fprint(w, ERASE_LINE)
+		fmt.Fprint(w, _ERASE_LINE)
 		if y == curr {
-			fmt.Fprint(w, BOLD_OFF)
+			fmt.Fprint(w, _BOLD_OFF)
 		}
 	}
 	return height
@@ -141,8 +141,8 @@ func (w View) Run() error {
 	if w.Out == nil {
 		w.Out = colorable.NewColorableStdout()
 	}
-	fmt.Fprint(w.Out, CURSOR_OFF)
-	defer fmt.Fprint(w.Out, CURSOR_ON)
+	fmt.Fprint(w.Out, _CURSOR_OFF)
+	defer fmt.Fprint(w.Out, _CURSOR_ON)
 
 	if w.Clear {
 		fmt.Print("\x1B[2J\x1B[H")
@@ -162,7 +162,7 @@ func (w View) Run() error {
 				y++
 				line := truncate(s, width-1)
 				fmt.Fprint(w.Out, line)
-				fmt.Fprint(w.Out, ERASE_LINE)
+				fmt.Fprint(w.Out, _ERASE_LINE)
 				if len(s) <= len(line) {
 					break
 				}
@@ -171,7 +171,7 @@ func (w View) Run() error {
 		}
 		for y < height-1 {
 			fmt.Fprintln(w.Out)
-			fmt.Fprint(w.Out, ERASE_LINE)
+			fmt.Fprint(w.Out, _ERASE_LINE)
 			y++
 		}
 	viewEnd:
@@ -211,7 +211,7 @@ func (w View) Run() error {
 				}
 			}
 		}
-		fmt.Fprintf(w.Out, UP_N, y)
+		fmt.Fprintf(w.Out, _UP_N, y)
 	}
 }
 
@@ -224,5 +224,5 @@ func (p *Param) UnGetKey(s string) {
 }
 
 func (p *Param) Message(s string) {
-	fmt.Fprintf(p.Out, "\r%s%s", s, ERASE_LINE)
+	fmt.Fprintf(p.Out, "\r%s%s", s, _ERASE_LINE)
 }
