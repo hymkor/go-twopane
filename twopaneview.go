@@ -59,25 +59,37 @@ const (
 	_ERASE_LINE = "\x1B[0K"
 )
 
-func truncate(s string, max int) string {
+func truncate(s string, max int) (int, string) {
 	w := 0
 	escape := false
+	var buffer strings.Builder
 	for i, c := range s {
 		if escape {
 			if unicode.IsLower(c) || unicode.IsUpper(c) {
 				escape = false
 			}
+			buffer.WriteRune(c)
 		} else if c == '\x1B' {
 			escape = true
+			buffer.WriteRune(c)
 		} else {
-			w1 := runewidth.RuneWidth(c)
+			var w1 int
+			if c == '\t' {
+				w1 = 8 - w%8
+				for i := 0; i < w1; i++ {
+					buffer.WriteByte(' ')
+				}
+			} else {
+				w1 = runewidth.RuneWidth(c)
+				buffer.WriteRune(c)
+			}
 			if w+w1 > max {
-				return s[:i]
+				return i, buffer.String()
 			}
 			w += w1
 		}
 	}
-	return s
+	return len(s), buffer.String()
 }
 
 func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
@@ -96,7 +108,8 @@ func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
 		if y == cursor {
 			fmt.Fprint(w, _BOLD_ON)
 		}
-		fmt.Fprint(w, truncate(strings.TrimSpace(title), width-1))
+		_, s := truncate(strings.TrimSpace(title), width-1)
+		fmt.Fprint(w, s)
 		fmt.Fprint(w, _ERASE_LINE)
 		if y == cursor {
 			fmt.Fprint(w, _BOLD_OFF)
@@ -156,13 +169,13 @@ func (v View) Run() error {
 				}
 				fmt.Fprintln(v.Out)
 				y++
-				line := truncate(s, width-1)
+				cutsize, line := truncate(s, width-1)
 				fmt.Fprint(v.Out, line)
 				fmt.Fprint(v.Out, _ERASE_LINE)
-				if len(s) <= len(line) {
+				if len(s) <= cutsize {
 					break
 				}
-				s = s[len(line):]
+				s = s[cutsize:]
 			}
 		}
 		for y < height-1 {
