@@ -94,7 +94,7 @@ func truncate(s string, max int) (int, string) {
 	return len(s), buffer.String()
 }
 
-func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
+func view(rows []Row, reverse bool, width, height, head, cursor int, w io.Writer) int {
 	newline := ""
 	for i := 0; i < height; i++ {
 		y := head + i
@@ -103,7 +103,14 @@ func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
 		}
 		fmt.Fprint(w, newline)
 		newline = "\n"
-		title := rows[y].Title()
+
+		var title string
+		if reverse {
+			title = rows[len(rows)-y-1].Title()
+		} else {
+			title = rows[y].Title()
+		}
+
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
 		}
@@ -127,6 +134,7 @@ type View struct {
 	Handler    func(*Param) bool
 	Clear      bool // deprecated
 	Out        io.Writer
+	Reverse    bool
 }
 
 // Param is the parameters for the function called back from View.Run
@@ -170,10 +178,16 @@ func (v View) Run() error {
 
 	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
 	for {
-		y := view(v.Rows, width, listHeight, head, cursor, v.Out)
+		y := view(v.Rows, v.Reverse, width, listHeight, head, cursor, v.Out)
 		fmt.Fprint(v.Out, hr)
 
-		for _, s := range v.Rows[cursor].Contents() {
+		var row Row
+		if v.Reverse {
+			row = v.Rows[len(v.Rows)-cursor-1]
+		} else {
+			row = v.Rows[cursor]
+		}
+		for _, s := range row.Contents() {
 			for {
 				if y >= height-1 {
 					goto viewEnd
