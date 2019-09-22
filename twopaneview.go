@@ -46,6 +46,7 @@ func getKey(tty1 *tty.TTY) (string, error) {
 	}
 }
 
+// Row is the interface for the element of list-view
 type Row interface {
 	Title() string
 	Contents() []string
@@ -119,6 +120,7 @@ func view(rows []Row, width, height, head, cursor int, w io.Writer) int {
 	return height
 }
 
+// View is the parameter for View.Run method.
 type View struct {
 	Rows       []Row
 	ViewHeight int
@@ -127,6 +129,7 @@ type View struct {
 	Out        io.Writer
 }
 
+// Param is the parameters for the function called back from View.Run
 type Param struct {
 	*View
 	Key    string
@@ -134,8 +137,10 @@ type Param struct {
 	tty    *tty.TTY
 }
 
+// ErrNoRows is the error when View.Rows has no rows.
 var ErrNoRows = errors.New("no rows")
 
+// Run shows View.Rows and wait and do your operations.
 func (v View) Run() error {
 	if len(v.Rows) <= 0 {
 		return ErrNoRows
@@ -230,14 +235,17 @@ func (v View) Run() error {
 	}
 }
 
+// GetKey gets user typed key.
 func (p *Param) GetKey() (string, error) {
 	return getKey(p.tty)
 }
 
+// UnGetKey sets the value the next called GetKey returns.
 func (p *Param) UnGetKey(s string) {
 	unGetKey = s
 }
 
+// Message shows string `s` on the bottom line of the screen.
 func (p *Param) Message(s string) {
 	fmt.Fprintf(p.Out, "\r%s%s", s, _ERASE_LINE)
 }
