@@ -78,15 +78,18 @@ func truncate(s string, max int) (int, string) {
 			var w1 int
 			if c == '\t' {
 				w1 = 8 - w%8
+				if w+w1 > max {
+					return i, buffer.String()
+				}
 				for i := 0; i < w1; i++ {
 					buffer.WriteByte(' ')
 				}
 			} else {
 				w1 = runewidth.RuneWidth(c)
+				if w+w1 > max {
+					return i, buffer.String()
+				}
 				buffer.WriteRune(c)
-			}
-			if w+w1 > max {
-				return i, buffer.String()
 			}
 			w += w1
 		}
