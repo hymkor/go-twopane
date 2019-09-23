@@ -242,6 +242,21 @@ func (v View) Run() error {
 		case "q", "\x1B":
 			fmt.Fprintln(v.Out)
 			return nil
+		case " ":
+			skip := (height - 1) - (v.ViewHeight + 1)
+			fmt.Fprintln(v.Out)
+			for i, text := range v.Rows[index].Contents() {
+				if i >= skip {
+					fmt.Fprintln(v.Out, text)
+				}
+				if ((i + 1) % height) == 0 {
+					fmt.Fprint(v.Out, "\r[more]")
+					getKey(tty1)
+					fmt.Fprint(v.Out, "\r      \r")
+				}
+			}
+			fmt.Fprint(v.Out, "[Hit Any Key]")
+			getKey(tty1)
 		default:
 			if v.Handler != nil {
 				param := &Param{

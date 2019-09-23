@@ -78,29 +78,7 @@ func main1() error {
 	statusLine := "=== [j] Up  [k] Down  [SPACE] git show  [q] Quit "
 	statusLine = statusLine + strings.Repeat("=", 76-len(statusLine))
 
-	return twopane.View{
-		Rows:       rows,
-		StatusLine: statusLine,
-		Handler: func(p *twopane.Param) bool {
-			if p.Key == " " {
-				skip := (p.Height - 1) - (p.ViewHeight + 1)
-				fmt.Fprintln(p.Out)
-				for i, text := range rows[p.Cursor].Contents() {
-					if i >= skip {
-						fmt.Fprintln(p.Out, text)
-					}
-					if ((i + 1) % p.Height) == 0 {
-						fmt.Fprint(p.Out, "\r[more]")
-						p.GetKey()
-						fmt.Fprint(p.Out, "\r      \r")
-					}
-				}
-				fmt.Fprint(p.Out, "[Hit Any Key]")
-				p.GetKey()
-			}
-			return true
-		},
-	}.Run()
+	return twopane.View{Rows: rows, StatusLine: statusLine}.Run()
 }
 
 func main() {
