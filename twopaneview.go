@@ -190,13 +190,13 @@ func (v View) Run() error {
 		fmt.Fprint(v.Out, v.StatusLine)
 		fmt.Fprint(v.Out, "\x1B[0m")
 
-		var row Row
+		var index int
 		if v.Reverse {
-			row = v.Rows[len(v.Rows)-cursor-1]
+			index = len(v.Rows) - cursor - 1
 		} else {
-			row = v.Rows[cursor]
+			index = cursor
 		}
-		for _, s := range row.Contents() {
+		for _, s := range v.Rows[index].Contents() {
 			for {
 				if y >= height-1 {
 					goto viewEnd
@@ -245,7 +245,7 @@ func (v View) Run() error {
 				param := &Param{
 					View:   &v,
 					Key:    key,
-					Cursor: cursor,
+					Cursor: index,
 					tty:    tty1,
 				}
 				if !v.Handler(param) {
