@@ -75,9 +75,12 @@ func main1() error {
 	if err != nil {
 		return err
 	}
+	statusLine := "=== [j] Up  [k] Down  [q] Quit "
+	statusLine = statusLine + strings.Repeat("=", 76-len(statusLine))
+
 	return twopane.View{
 		Rows:       rows,
-		StatusLine: "==== [j] Up  [k] Down  [q] Quit ====",
+		StatusLine: statusLine,
 	}.Run()
 }
 
