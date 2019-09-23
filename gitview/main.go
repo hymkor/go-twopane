@@ -83,23 +83,17 @@ func main1() error {
 		StatusLine: statusLine,
 		Handler: func(p *twopane.Param) bool {
 			if p.Key == " " {
-				if row, ok := rows[p.Cursor].(*Row); ok {
-					lineCount := 0
-					skip := p.Height / 2
-					fmt.Fprintln(p.Out)
-					fetchOutput(exec.Command("git", "show", row.commit), func(text string) {
-						skip--
-						if skip <= 0 {
-							fmt.Fprintln(p.Out, text)
-						}
-						lineCount++
-						if lineCount >= p.Height-1 {
-							fmt.Fprint(p.Out, "[more]")
-							p.GetKey()
-							fmt.Fprint(p.Out, "\r      \r")
-							lineCount = 0
-						}
-					})
+				skip := (p.Height - 1) - (p.ViewHeight + 1)
+				fmt.Fprintln(p.Out)
+				for i, text := range rows[p.Cursor].Contents() {
+					if i >= skip {
+						fmt.Fprintln(p.Out, text)
+					}
+					if ((i + 1) % p.Height) == 0 {
+						fmt.Fprint(p.Out, "\r[more]")
+						p.GetKey()
+						fmt.Fprint(p.Out, "\r      \r")
+					}
 				}
 				fmt.Fprint(p.Out, "[Hit Any Key]")
 				p.GetKey()
