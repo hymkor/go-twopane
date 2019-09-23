@@ -148,6 +148,8 @@ type Param struct {
 	Key    string
 	Cursor int
 	tty    *tty.TTY
+	Width  int
+	Height int
 }
 
 // ErrNoRows is the error when View.Rows has no rows.
@@ -247,6 +249,8 @@ func (v View) Run() error {
 					Key:    key,
 					Cursor: index,
 					tty:    tty1,
+					Width:  width,
+					Height: height,
 				}
 				if !v.Handler(param) {
 					fmt.Fprintln(v.Out)
