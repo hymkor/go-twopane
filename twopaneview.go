@@ -139,6 +139,7 @@ type View struct {
 	Out        io.Writer
 	Reverse    bool
 	Cursor     int
+	StatusLine interface{} // string or fmt.Stringer
 }
 
 // Param is the parameters for the function called back from View.Run
@@ -180,10 +181,14 @@ func (v View) Run() error {
 	fmt.Fprint(v.Out, _CURSOR_OFF)
 	defer fmt.Fprint(v.Out, _CURSOR_ON)
 
-	hr := "\n\x1B[0;34;1m" + strings.Repeat("=", width-1) + "\x1B[0m"
+	if v.StatusLine == nil {
+		v.StatusLine = strings.Repeat("=", width-1)
+	}
 	for {
 		y := view(v.Rows, v.Reverse, width, listHeight, head, cursor, v.Out)
-		fmt.Fprint(v.Out, hr)
+		fmt.Fprint(v.Out, "\n\x1B[0;34;1m")
+		fmt.Fprint(v.Out, v.StatusLine)
+		fmt.Fprint(v.Out, "\x1B[0m")
 
 		var row Row
 		if v.Reverse {

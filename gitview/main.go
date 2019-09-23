@@ -75,7 +75,10 @@ func main1() error {
 	if err != nil {
 		return err
 	}
-	return twopane.View{Rows: rows}.Run()
+	return twopane.View{
+		Rows:       rows,
+		StatusLine: "==== [j] Up  [k] Down  [q] Quit ====",
+	}.Run()
 }
 
 func main() {
