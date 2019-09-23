@@ -75,12 +75,24 @@ func main1() error {
 	if err != nil {
 		return err
 	}
-	statusLine := "=== [j] Up  [k] Down  [q] Quit "
+	statusLine := "=== [j] Up  [k] Down  [SPACE] git show  [q] Quit "
 	statusLine = statusLine + strings.Repeat("=", 76-len(statusLine))
 
 	return twopane.View{
 		Rows:       rows,
 		StatusLine: statusLine,
+		Handler: func(p *twopane.Param) bool {
+			if p.Key == " " {
+				if row, ok := rows[p.Cursor].(*Row); ok {
+					fetchOutput(exec.Command("git", "show", row.commit), func(text string) {
+						fmt.Fprintln(p.Out, text)
+					})
+				}
+				fmt.Fprint(p.Out, "[Hit Any Key]")
+				p.GetKey()
+			}
+			return true
+		},
 	}.Run()
 }
 
