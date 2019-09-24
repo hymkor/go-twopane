@@ -251,7 +251,9 @@ func (v View) Run() error {
 				}
 				if ((i + 1) % height) == 0 {
 					fmt.Fprint(v.Out, "\r[more]")
-					getKey(tty1)
+					if key, err := getKey(tty1); err != nil || key == "q" || key == "\x1B" {
+						goto done
+					}
 					fmt.Fprint(v.Out, "\r      \r")
 				}
 			}
@@ -273,6 +275,7 @@ func (v View) Run() error {
 				}
 			}
 		}
+	done:
 		fmt.Fprintf(v.Out, _UP_N, y)
 	}
 }
