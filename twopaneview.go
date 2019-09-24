@@ -225,13 +225,6 @@ func (v View) Run() error {
 			return err
 		}
 		switch key {
-		case "j", "\x0E", "\x1B[B":
-			if cursor < len(v.Rows)-1 {
-				cursor++
-				if cursor >= head+listHeight {
-					head++
-				}
-			}
 		case "k", "\x10", "\x1B[A":
 			if cursor > 0 {
 				cursor--
@@ -245,7 +238,8 @@ func (v View) Run() error {
 		case " ":
 			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
-			for i, text := range v.Rows[index].Contents() {
+			contents := v.Rows[index].Contents()
+			for i, text := range contents {
 				if i >= skip {
 					fmt.Fprintln(v.Out, text)
 				}
@@ -257,13 +251,18 @@ func (v View) Run() error {
 					fmt.Fprint(v.Out, "\r      \r")
 				}
 			}
-			fmt.Fprint(v.Out, "[next]")
-			if key, err := getKey(tty1); err == nil && key == " " {
-				if cursor < len(v.Rows)-1 {
-					cursor++
-					if cursor >= head+listHeight {
-						head++
-					}
+			if len(contents) >= skip {
+				fmt.Fprint(v.Out, "[next]")
+				if key, err := getKey(tty1); err != nil || key != " " {
+					break
+				}
+			}
+			fallthrough
+		case "j", "\x0E", "\x1B[B":
+			if cursor < len(v.Rows)-1 {
+				cursor++
+				if cursor >= head+listHeight {
+					head++
 				}
 			}
 		default:
