@@ -257,8 +257,15 @@ func (v View) Run() error {
 					fmt.Fprint(v.Out, "\r      \r")
 				}
 			}
-			fmt.Fprint(v.Out, "[Hit Any Key]")
-			getKey(tty1)
+			fmt.Fprint(v.Out, "[next]")
+			if key, err := getKey(tty1); err == nil && key == " " {
+				if cursor < len(v.Rows)-1 {
+					cursor++
+					if cursor >= head+listHeight {
+						head++
+					}
+				}
+			}
 		default:
 			if v.Handler != nil {
 				param := &Param{
