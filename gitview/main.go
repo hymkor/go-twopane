@@ -42,7 +42,7 @@ func fetchOutput(cmd *exec.Cmd, callback func(text string)) error {
 
 func (this *Row) Contents() []string {
 	if this.contents == nil {
-		cmd := exec.Command("git", "show", this.commit)
+		cmd := exec.Command("git", "show", "--color", this.commit)
 		err := fetchOutput(cmd, func(text string) {
 			this.contents = append(this.contents, text)
 		})
