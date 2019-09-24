@@ -243,7 +243,7 @@ func (v View) Run() error {
 			fmt.Fprintln(v.Out)
 			return nil
 		case " ":
-			skip := (height - 1) - (v.ViewHeight + 1)
+			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
 			for i, text := range v.Rows[index].Contents() {
 				if i >= skip {
