@@ -165,7 +165,22 @@ func (v View) Run() error {
 	if err != nil {
 		return err
 	}
-	defer tty1.Close()
+	quit := make(chan struct{})
+	ws := tty1.SIGWINCH()
+	go func() {
+		for {
+			select {
+			case <-quit:
+				return
+			case <-ws:
+			}
+		}
+	}()
+
+	defer func() {
+		quit <- struct{}{}
+		tty1.Close()
+	}()
 
 	width, height, err := tty1.Size()
 	if err != nil {
