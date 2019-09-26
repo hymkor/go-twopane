@@ -16,7 +16,7 @@ type Row struct {
 	contents []string
 }
 
-func (this *Row) Title() string {
+func (this *Row) Title(_ interface{}) string {
 	return this.title
 }
 
@@ -40,7 +40,7 @@ func fetchOutput(cmd *exec.Cmd, callback func(text string)) error {
 	return nil
 }
 
-func (this *Row) Contents() []string {
+func (this *Row) Contents(_ interface{}) []string {
 	if this.contents == nil {
 		cmd := exec.Command("git", "show", "--color", this.commit)
 		err := fetchOutput(cmd, func(text string) {

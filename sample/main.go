@@ -9,11 +9,11 @@ import (
 
 type Row string
 
-func (r Row) Title() string {
+func (r Row) Title(_ interface{}) string {
 	return string(r)
 }
 
-func (r Row) Contents() []string {
+func (r Row) Contents(_ interface{}) []string {
 	return []string{"Contents of " + string(r)}
 }
 

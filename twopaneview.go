@@ -48,8 +48,8 @@ func getKey(tty1 *tty.TTY) (string, error) {
 
 // Row is the interface for the element of list-view
 type Row interface {
-	Title() string
-	Contents() []string
+	Title(interface{}) string
+	Contents(interface{}) []string
 }
 
 const (
@@ -97,34 +97,34 @@ func truncate(s string, max int) (int, string) {
 	return len(s), buffer.String()
 }
 
-func view(rows []Row, reverse bool, width, height, head, cursor int, w io.Writer) int {
+func (v *View) view(width, height, head, cursor int) int {
 	newline := ""
 	for i := 0; i < height; i++ {
 		y := head + i
-		if y >= len(rows) {
+		if y >= len(v.Rows) {
 			return i
 		}
-		fmt.Fprint(w, newline)
+		fmt.Fprint(v.Out, newline)
 		newline = "\n"
 
 		var title string
-		if reverse {
-			title = rows[len(rows)-y-1].Title()
+		if v.Reverse {
+			title = v.Rows[len(v.Rows)-y-1].Title(v.X)
 		} else {
-			title = rows[y].Title()
+			title = v.Rows[y].Title(v.X)
 		}
 
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
 		}
 		if y == cursor {
-			fmt.Fprint(w, _BOLD_ON)
+			fmt.Fprint(v.Out, _BOLD_ON)
 		}
 		_, s := truncate(strings.TrimSpace(title), width-1)
-		fmt.Fprint(w, s)
-		fmt.Fprint(w, _ERASE_LINE)
+		fmt.Fprint(v.Out, s)
+		fmt.Fprint(v.Out, _ERASE_LINE)
 		if y == cursor {
-			fmt.Fprint(w, _BOLD_OFF)
+			fmt.Fprint(v.Out, _BOLD_OFF)
 		}
 	}
 	return height
@@ -140,6 +140,7 @@ type View struct {
 	Reverse    bool
 	Cursor     int
 	StatusLine interface{} // string or fmt.Stringer
+	X          interface{} // is given to Title() and Contents() as first parameter
 }
 
 // Param is the parameters for the function called back from View.Run
@@ -187,7 +188,7 @@ func (v View) Run() error {
 		v.StatusLine = strings.Repeat("=", width-1)
 	}
 	for {
-		y := view(v.Rows, v.Reverse, width, listHeight, head, cursor, v.Out)
+		y := v.view(width, listHeight, head, cursor)
 		fmt.Fprint(v.Out, "\n\x1B[0;34;1m")
 		fmt.Fprint(v.Out, v.StatusLine)
 		fmt.Fprint(v.Out, "\x1B[0m")
@@ -198,7 +199,7 @@ func (v View) Run() error {
 		} else {
 			index = cursor
 		}
-		for _, s := range v.Rows[index].Contents() {
+		for _, s := range v.Rows[index].Contents(v.X) {
 			for {
 				if y >= height-1 {
 					goto viewEnd
@@ -238,7 +239,7 @@ func (v View) Run() error {
 		case " ":
 			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
-			contents := v.Rows[index].Contents()
+			contents := v.Rows[index].Contents(v.X)
 			for i, text := range contents {
 				if i >= skip {
 					fmt.Fprintln(v.Out, text)
