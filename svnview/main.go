@@ -15,7 +15,8 @@ type LogEntry struct {
 	Revision string `xml:"revision,attr"`
 	Author   string `xml:"author"`
 	Msg      string `xml:"msg"`
-	contents string
+	title    string
+	contents []string
 }
 
 type Log struct {
@@ -23,16 +24,17 @@ type Log struct {
 }
 
 func (this *LogEntry) Title(_ interface{}) string {
-	if this.contents == "" {
-		this.contents = this.Revision + " " + this.Msg
+	if this.title == "" {
+		this.title = fmt.Sprintf("r%s %-8s %s", this.Revision, this.Author, this.Msg)
 	}
-	return this.contents
+	return this.title
 }
 
-var testdata = []string{"test"}
-
 func (this *LogEntry) Contents(_ interface{}) []string {
-	return testdata
+	if this.contents == nil {
+		this.contents = strings.Split(this.Msg, "\n")
+	}
+	return this.contents
 }
 
 func makeRows() ([]twopane.Row, error) {
