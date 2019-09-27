@@ -97,10 +97,10 @@ func truncate(s string, max int) (int, string) {
 	return len(s), buffer.String()
 }
 
-func (v *View) view(width, height, head, cursor int) int {
+func (v *View) view(width, height, headY, cursorY int) int {
 	newline := ""
 	for i := 0; i < height; i++ {
-		y := head + i
+		y := headY + i
 		if y >= len(v.Rows) {
 			return i
 		}
@@ -117,13 +117,13 @@ func (v *View) view(width, height, head, cursor int) int {
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
 		}
-		if y == cursor {
+		if y == cursorY {
 			fmt.Fprint(v.Out, _BOLD_ON)
 		}
 		_, s := truncate(strings.TrimSpace(title), width-1)
 		fmt.Fprint(v.Out, s)
 		fmt.Fprint(v.Out, _ERASE_LINE)
-		if y == cursor {
+		if y == cursorY {
 			fmt.Fprint(v.Out, _BOLD_OFF)
 		}
 	}
@@ -147,7 +147,7 @@ type View struct {
 type Param struct {
 	*View
 	Key    string
-	Cursor int
+	Cursor int // index of cursor in View.Rows
 	tty    *tty.TTY
 	Width  int
 	Height int
@@ -186,8 +186,8 @@ func (v View) Run() error {
 	if err != nil {
 		return err
 	}
-	head := 0
-	cursor := v.Cursor
+	headY := 0
+	cursorY := v.Cursor
 	if v.ViewHeight == 0 {
 		v.ViewHeight = height / 2
 	}
@@ -203,16 +203,16 @@ func (v View) Run() error {
 		v.StatusLine = strings.Repeat("=", width-1)
 	}
 	for {
-		y := v.view(width, listHeight, head, cursor)
+		y := v.view(width, listHeight, headY, cursorY)
 		fmt.Fprint(v.Out, "\n\x1B[0;34;1m")
 		fmt.Fprint(v.Out, v.StatusLine)
 		fmt.Fprint(v.Out, "\x1B[0m")
 
 		var index int
 		if v.Reverse {
-			index = len(v.Rows) - cursor - 1
+			index = len(v.Rows) - cursorY - 1
 		} else {
-			index = cursor
+			index = cursorY
 		}
 		for _, s := range v.Rows[index].Contents(v.X) {
 			for {
@@ -242,10 +242,10 @@ func (v View) Run() error {
 		}
 		switch key {
 		case "k", "\x10", "\x1B[A":
-			if cursor > 0 {
-				cursor--
-				if cursor < head {
-					head--
+			if cursorY > 0 {
+				cursorY--
+				if cursorY < headY {
+					headY--
 				}
 			}
 		case "q", "\x1B":
@@ -275,10 +275,10 @@ func (v View) Run() error {
 			}
 			fallthrough
 		case "j", "\x0E", "\x1B[B":
-			if cursor < len(v.Rows)-1 {
-				cursor++
-				if cursor >= head+listHeight {
-					head++
+			if cursorY < len(v.Rows)-1 {
+				cursorY++
+				if cursorY >= headY+listHeight {
+					headY++
 				}
 			}
 		default:
@@ -297,14 +297,14 @@ func (v View) Run() error {
 				}
 				if param.Cursor != index {
 					if v.Reverse {
-						cursor = len(v.Rows) - param.Cursor - 1
+						cursorY = len(v.Rows) - param.Cursor - 1
 					} else {
-						cursor = param.Cursor
+						cursorY = param.Cursor
 					}
-					if cursor < head {
-						head = cursor
-					} else if cursor >= head+listHeight {
-						head = cursor - listHeight + 1
+					if cursorY < headY {
+						headY = cursorY
+					} else if cursorY >= headY+listHeight {
+						headY = cursorY - listHeight + 1
 					}
 				}
 			}
