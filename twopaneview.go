@@ -216,7 +216,7 @@ func (v View) Run() error {
 		y := v.view(width, listHeight, headY, cursorY)
 		fmt.Fprint(v.Out, "\n\x1B[0;34;1m")
 		fmt.Fprint(v.Out, v.StatusLine)
-		fmt.Fprint(v.Out, "\x1B[0m")
+		fmt.Fprint(v.Out, _ERASE_LINE+"\x1B[0m")
 
 		var index int
 		if v.Reverse {
