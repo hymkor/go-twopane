@@ -249,8 +249,11 @@ func (v View) Run() error {
 				}
 			}
 		case "q", "\x1B":
-			fmt.Fprintln(v.Out)
-			return nil
+			fmt.Fprint(v.Out, "\rQuit ? [Y/N] "+_ERASE_LINE+"\r")
+			if key, err := getKey(tty1); err == nil && key == "y" || key == "Y" {
+				fmt.Fprintln(v.Out)
+				return nil
+			}
 		case " ":
 			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
