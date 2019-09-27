@@ -295,6 +295,18 @@ func (v View) Run() error {
 					fmt.Fprintln(v.Out)
 					return nil
 				}
+				if param.Cursor != index {
+					if v.Reverse {
+						cursor = len(v.Rows) - param.Cursor - 1
+					} else {
+						cursor = param.Cursor
+					}
+					if cursor < head {
+						head = cursor
+					} else if cursor >= head+listHeight {
+						head = cursor - listHeight + 1
+					}
+				}
 			}
 		}
 	done:
