@@ -265,6 +265,7 @@ func (v View) Run() error {
 				return nil
 			}
 		case " ":
+			v.cache = nil
 			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
 			contents := v.Rows[index].Contents(v.X)
@@ -295,6 +296,7 @@ func (v View) Run() error {
 				}
 			}
 		default:
+			v.cache = nil
 			if v.Handler != nil {
 				param := &Param{
 					View:   &v,
