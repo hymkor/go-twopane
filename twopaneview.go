@@ -99,6 +99,9 @@ func truncate(s string, max int) (int, string) {
 
 func (v *View) view(width, height, headY, cursorY int) int {
 	newline := ""
+	if v.cache == nil {
+		v.cache = map[int]string{}
+	}
 	for i := 0; i < height; i++ {
 		y := headY + i
 		if y >= len(v.Rows) {
@@ -117,14 +120,20 @@ func (v *View) view(width, height, headY, cursorY int) int {
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
 		}
+		var buffer strings.Builder
 		if y == cursorY {
-			fmt.Fprint(v.Out, _BOLD_ON)
+			fmt.Fprint(&buffer, _BOLD_ON)
 		}
 		_, s := truncate(strings.TrimSpace(title), width-1)
-		fmt.Fprint(v.Out, s)
-		fmt.Fprint(v.Out, _ERASE_LINE)
+		fmt.Fprint(&buffer, s)
+		fmt.Fprint(&buffer, _ERASE_LINE)
 		if y == cursorY {
-			fmt.Fprint(v.Out, _BOLD_OFF)
+			fmt.Fprint(&buffer, _BOLD_OFF)
+		}
+		b := buffer.String()
+		if cache1, ok := v.cache[i]; !ok || cache1 != b {
+			fmt.Fprint(v.Out, b)
+			v.cache[i] = b
 		}
 	}
 	return height
@@ -141,6 +150,7 @@ type View struct {
 	Cursor     int
 	StatusLine interface{} // string or fmt.Stringer
 	X          interface{} // is given to Title() and Contents() as first parameter
+	cache      map[int]string
 }
 
 // Param is the parameters for the function called back from View.Run
