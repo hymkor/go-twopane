@@ -44,7 +44,7 @@ func (this *Row) Contents(_ interface{}) []string {
 	if this.contents == nil {
 		cmd := exec.Command("git", "show", "--color", this.commit)
 		err := fetchOutput(cmd, func(text string) {
-			this.contents = append(this.contents, text)
+			this.contents = append(this.contents, textfilter(text))
 		})
 		if err != nil {
 			this.contents = []string{err.Error()}
