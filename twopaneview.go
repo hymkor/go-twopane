@@ -85,7 +85,11 @@ func truncate(s string, max int) (int, string) {
 					buffer.WriteByte(' ')
 				}
 			} else {
-				w1 = runewidth.RuneWidth(c)
+				if runewidth.IsAmbiguousWidth(c) {
+					w1 = 2
+				} else {
+					w1 = runewidth.RuneWidth(c)
+				}
 				if w+w1 > max {
 					return i, buffer.String()
 				}
