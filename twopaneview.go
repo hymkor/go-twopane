@@ -116,6 +116,7 @@ func (v *View) view(width, height, headY, cursorY int) int {
 		} else {
 			title = v.Rows[y].Title(v.X)
 		}
+		title = textfilter(title)
 
 		if index := strings.IndexAny(title, "\r\n"); index >= 0 {
 			title = title[:index]
@@ -224,7 +225,8 @@ func (v View) Run() error {
 		} else {
 			index = cursorY
 		}
-		for _, s := range v.Rows[index].Contents(v.X) {
+		for _, _s := range v.Rows[index].Contents(v.X) {
+			s := textfilter(_s)
 			for {
 				if y >= height-1 {
 					goto viewEnd
@@ -269,7 +271,8 @@ func (v View) Run() error {
 			skip := height - (v.ViewHeight + 1)
 			fmt.Fprintln(v.Out)
 			contents := v.Rows[index].Contents(v.X)
-			for i, text := range contents {
+			for i, _text := range contents {
+				text := textfilter(_text)
 				if i >= skip {
 					fmt.Fprintln(v.Out, text)
 				}
