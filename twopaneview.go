@@ -193,8 +193,8 @@ func (v View) Run() error {
 	}()
 
 	defer func() {
-		quit <- struct{}{}
 		tty1.Close()
+		quit <- struct{}{}
 	}()
 
 	width, height, err := tty1.Size()
