@@ -220,7 +220,8 @@ func (v View) Run() error {
 	for {
 		y := v.view(width, listHeight, headY, cursorY)
 		fmt.Fprint(v.Out, "\n\x1B[0;47;30m")
-		fmt.Fprint(v.Out, v.StatusLine)
+		_, statusLine := truncate(fmt.Sprint(v.StatusLine), width-1)
+		fmt.Fprint(v.Out, statusLine)
 		fmt.Fprint(v.Out, _ERASE_LINE+"\x1B[0m")
 
 		var index int
