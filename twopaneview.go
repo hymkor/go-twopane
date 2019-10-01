@@ -317,17 +317,15 @@ func (v View) Run() error {
 					fmt.Fprintln(v.Out)
 					return nil
 				}
-				if param.Cursor != index {
-					if v.Reverse {
-						cursorY = len(v.Rows) - param.Cursor - 1
-					} else {
-						cursorY = param.Cursor
-					}
-					if cursorY < headY {
-						headY = cursorY
-					} else if cursorY >= headY+listHeight {
-						headY = cursorY - listHeight + 1
-					}
+				if v.Reverse {
+					cursorY = len(v.Rows) - param.Cursor - 1
+				} else {
+					cursorY = param.Cursor
+				}
+				if cursorY < headY {
+					headY = cursorY
+				} else if cursorY >= headY+listHeight {
+					headY = cursorY - listHeight + 1
 				}
 			}
 		}
