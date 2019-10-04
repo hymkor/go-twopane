@@ -273,7 +273,7 @@ func (v View) Run() error {
 			}
 		case " ":
 			v.cache = nil
-			skip := height - (v.ViewHeight + 1)
+			skip := height - (listHeight + 1)
 			fmt.Fprintln(v.Out)
 			contents := v.Rows[index].Contents(v.X)
 			for i, _text := range contents {
