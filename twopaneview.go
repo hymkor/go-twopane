@@ -290,7 +290,12 @@ func (v View) Run() error {
 			}
 			if len(contents) >= skip {
 				fmt.Fprint(v.Out, "[next]")
-				if key, err := getKey(tty1); err != nil || key != " " {
+				key, err := getKey(tty1)
+				if err != nil || key == "\x1B" {
+					break
+				}
+				if key != " " {
+					unGetKey = key
 					break
 				}
 			}
