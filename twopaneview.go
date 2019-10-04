@@ -55,7 +55,7 @@ type Row interface {
 const (
 	_CURSOR_OFF = "\x1B[?25l"
 	_CURSOR_ON  = "\x1B[?25h"
-	_BOLD_ON    = "\x1B[0;44;37;1m"
+	_BOLD_ON    = "\x1B[0;41;37;1m"
 	_BOLD_OFF   = "\x1B[0m"
 	_UP_N       = "\x1B[%dA\r"
 	_ERASE_LINE = "\x1B[0K"
@@ -219,7 +219,7 @@ func (v View) Run() error {
 	}
 	for {
 		y := v.view(width, listHeight, headY, cursorY)
-		fmt.Fprint(v.Out, "\n\x1B[0;47;30m")
+		fmt.Fprint(v.Out, "\n\x1B[0;7m")
 		fmt.Fprint(v.Out, v.StatusLine)
 		fmt.Fprint(v.Out, _ERASE_LINE+"\x1B[0m")
 
