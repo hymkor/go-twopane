@@ -171,6 +171,21 @@ type Param struct {
 // ErrNoRows is the error when View.Rows has no rows.
 var ErrNoRows = errors.New("no rows")
 
+func expandContentsLine(src []string, max int) (dst []string) {
+	for _, text := range src {
+		text = textfilter(text)
+		for {
+			cutsize, line := truncate(text, max)
+			dst = append(dst, line)
+			if len(text) <= cutsize {
+				break
+			}
+			text = text[cutsize:]
+		}
+	}
+	return
+}
+
 // Run shows View.Rows and wait and do your operations.
 func (v View) Run() error {
 	if len(v.Rows) <= 0 {
@@ -230,22 +245,14 @@ func (v View) Run() error {
 		} else {
 			index = cursorY
 		}
-		for _, _s := range v.Rows[index].Contents(v.X) {
-			s := textfilter(_s)
-			for {
-				if y >= height-1 {
-					goto viewEnd
-				}
-				fmt.Fprintln(v.Out)
-				y++
-				cutsize, line := truncate(s, width-1)
-				fmt.Fprint(v.Out, line)
-				fmt.Fprint(v.Out, _ERASE_LINE)
-				if len(s) <= cutsize {
-					break
-				}
-				s = s[cutsize:]
+		for _, line := range expandContentsLine(v.Rows[index].Contents(v.X), width-1) {
+			if y >= height-1 {
+				goto viewEnd
 			}
+			fmt.Fprintln(v.Out)
+			y++
+			fmt.Fprint(v.Out, line)
+			fmt.Fprint(v.Out, _ERASE_LINE)
 		}
 		for y < height-1 {
 			fmt.Fprintln(v.Out)
@@ -275,9 +282,8 @@ func (v View) Run() error {
 			v.cache = nil
 			skip := height - (listHeight + 1)
 			fmt.Fprintln(v.Out)
-			contents := v.Rows[index].Contents(v.X)
-			for i, _text := range contents {
-				text := textfilter(_text)
+			contents := expandContentsLine(v.Rows[index].Contents(v.X), width-1)
+			for i, text := range contents {
 				if i >= skip {
 					fmt.Fprintln(v.Out, text)
 				}
