@@ -12,6 +12,24 @@ import (
 	"github.com/mattn/go-tty"
 )
 
+const (
+	_ANSI_CURSOR_OFF = "\x1B[?25l"
+	_ANSI_CURSOR_ON  = "\x1B[?25h"
+	_ANSI_BOLD       = "\x1B[0;41;37;1m"
+	_ANSI_REVERSE    = "\x1B[0;7m"
+	_ANSI_RESET      = "\x1B[0m"
+	_ANSI_UP_N       = "\x1B[%dA\r"
+	_ANSI_ERASE_LINE = "\x1B[0K"
+)
+
+const (
+	_KEY_UP     = "\x1B[A"
+	_KEY_ESC    = "\x1B"
+	_KEY_DOWN   = "\x1B[B"
+	_KEY_CTRL_N = "\x0E"
+	_KEY_CTRL_P = "\x10"
+)
+
 var unGetKey string
 
 func getKey(tty1 *tty.TTY) (string, error) {
@@ -51,15 +69,6 @@ type Row interface {
 	Title(interface{}) string
 	Contents(interface{}) []string
 }
-
-const (
-	_CURSOR_OFF = "\x1B[?25l"
-	_CURSOR_ON  = "\x1B[?25h"
-	_BOLD_ON    = "\x1B[0;41;37;1m"
-	_BOLD_OFF   = "\x1B[0m"
-	_UP_N       = "\x1B[%dA\r"
-	_ERASE_LINE = "\x1B[0K"
-)
 
 func truncate(s string, max int) (int, string) {
 	w := 0
@@ -127,13 +136,13 @@ func (v *View) view(width, height, headY, cursorY int) int {
 		}
 		var buffer strings.Builder
 		if y == cursorY {
-			fmt.Fprint(&buffer, _BOLD_ON)
+			fmt.Fprint(&buffer, _ANSI_BOLD)
 		}
 		_, s := truncate(strings.TrimSpace(title), width-1)
 		fmt.Fprint(&buffer, s)
-		fmt.Fprint(&buffer, _ERASE_LINE)
+		fmt.Fprint(&buffer, _ANSI_ERASE_LINE)
 		if y == cursorY {
-			fmt.Fprint(&buffer, _BOLD_OFF)
+			fmt.Fprint(&buffer, _ANSI_RESET)
 		}
 		b := buffer.String()
 		if cache1, ok := v.cache[i]; !ok || cache1 != b {
@@ -226,18 +235,18 @@ func (v View) Run() error {
 	if v.Out == nil {
 		v.Out = colorable.NewColorableStdout()
 	}
-	fmt.Fprint(v.Out, _CURSOR_OFF)
-	defer fmt.Fprint(v.Out, _CURSOR_ON)
+	fmt.Fprint(v.Out, _ANSI_CURSOR_OFF)
+	defer fmt.Fprint(v.Out, _ANSI_CURSOR_ON)
 
 	if v.StatusLine == nil {
 		v.StatusLine = strings.Repeat("=", width-1)
 	}
 	for {
 		y := v.view(width, listHeight, headY, cursorY)
-		fmt.Fprint(v.Out, "\n\x1B[0;7m")
+		fmt.Fprint(v.Out, "\n"+_ANSI_REVERSE)
 		_, statusLine := truncate(fmt.Sprint(v.StatusLine), width-1)
 		fmt.Fprint(v.Out, statusLine)
-		fmt.Fprint(v.Out, _ERASE_LINE+"\x1B[0m")
+		fmt.Fprint(v.Out, _ANSI_ERASE_LINE+_ANSI_RESET)
 
 		var index int
 		if v.Reverse {
@@ -252,11 +261,11 @@ func (v View) Run() error {
 			fmt.Fprintln(v.Out)
 			y++
 			fmt.Fprint(v.Out, line)
-			fmt.Fprint(v.Out, _ERASE_LINE)
+			fmt.Fprint(v.Out, _ANSI_ERASE_LINE)
 		}
 		for y < height-1 {
 			fmt.Fprintln(v.Out)
-			fmt.Fprint(v.Out, _ERASE_LINE)
+			fmt.Fprint(v.Out, _ANSI_ERASE_LINE)
 			y++
 		}
 	viewEnd:
@@ -265,15 +274,15 @@ func (v View) Run() error {
 			return err
 		}
 		switch key {
-		case "k", "\x10", "\x1B[A":
+		case "k", _KEY_CTRL_P, _KEY_UP:
 			if cursorY > 0 {
 				cursorY--
 				if cursorY < headY {
 					headY--
 				}
 			}
-		case "q", "\x1B":
-			fmt.Fprint(v.Out, "\rQuit ? [Y/N] "+_ERASE_LINE+"\r")
+		case "q", _KEY_ESC:
+			fmt.Fprint(v.Out, "\rQuit ? [Y/N] "+_ANSI_ERASE_LINE+"\r")
 			if key, err := getKey(tty1); err == nil && key == "y" || key == "Y" {
 				fmt.Fprintln(v.Out)
 				return nil
@@ -298,7 +307,7 @@ func (v View) Run() error {
 			if len(contents) >= skip {
 				fmt.Fprint(v.Out, "[next]")
 				key, err := getKey(tty1)
-				if err != nil || key == "\x1B" {
+				if err != nil || key == _KEY_ESC {
 					break
 				}
 				if key != " " {
@@ -307,7 +316,7 @@ func (v View) Run() error {
 				}
 			}
 			fallthrough
-		case "j", "\x0E", "\x1B[B":
+		case "j", _KEY_CTRL_N, _KEY_DOWN:
 			if cursorY < len(v.Rows)-1 {
 				cursorY++
 				if cursorY >= headY+listHeight {
@@ -342,7 +351,7 @@ func (v View) Run() error {
 			}
 		}
 	done:
-		fmt.Fprintf(v.Out, _UP_N, y)
+		fmt.Fprintf(v.Out, _ANSI_UP_N, y)
 	}
 }
 
@@ -358,5 +367,5 @@ func (p *Param) UnGetKey(s string) {
 
 // Message shows string `s` on the bottom line of the screen.
 func (p *Param) Message(s string) {
-	fmt.Fprintf(p.Out, "\r%s%s", s, _ERASE_LINE)
+	fmt.Fprintf(p.Out, "\r%s%s", s, _ANSI_ERASE_LINE)
 }
