@@ -111,7 +111,7 @@ func truncate(s string, max int) (int, string) {
 }
 
 func (v *View) view(width, height, headY, cursorY int) int {
-	newline := ""
+	newline := _ANSI_RESET
 	if v.cache == nil {
 		v.cache = map[int]string{}
 	}
@@ -268,6 +268,7 @@ func (v View) Run() error {
 			fmt.Fprint(v.Out, _ANSI_ERASE_LINE)
 			y++
 		}
+		fmt.Fprint(v.Out, _ANSI_RESET)
 	viewEnd:
 		key, err := getKey(tty1)
 		if err != nil {
@@ -297,13 +298,14 @@ func (v View) Run() error {
 					fmt.Fprintln(v.Out, text)
 				}
 				if ((i + 1) % height) == 0 {
-					fmt.Fprint(v.Out, "\r[more]")
+					fmt.Fprint(v.Out, _ANSI_RESET+"\r[more]")
 					if key, err := getKey(tty1); err != nil || key == "q" || key == "\x1B" {
 						goto done
 					}
 					fmt.Fprint(v.Out, "\r      \r")
 				}
 			}
+			fmt.Fprint(v.Out, _ANSI_RESET)
 			if len(contents) >= skip {
 				fmt.Fprint(v.Out, "[next]")
 				key, err := getKey(tty1)
