@@ -228,7 +228,7 @@ func (v View) Run() error {
 	headY := 0
 	cursorY := v.Cursor
 	if v.ViewHeight == 0 {
-		v.ViewHeight = height / 2
+		v.ViewHeight = height - height/4
 	}
 	listHeight := height - v.ViewHeight
 
