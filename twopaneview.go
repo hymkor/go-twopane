@@ -20,6 +20,7 @@ const (
 	_ANSI_RESET      = "\x1B[0m"
 	_ANSI_UP_N       = "\x1B[%dA\r"
 	_ANSI_ERASE_LINE = "\x1B[0K"
+	_ANSI_ERASE_SCRN = "\x1B[0J"
 )
 
 const (
@@ -263,10 +264,12 @@ func (v View) Run() error {
 			fmt.Fprint(v.Out, line)
 			fmt.Fprint(v.Out, _ANSI_ERASE_LINE)
 		}
-		for y < height-1 {
-			fmt.Fprintln(v.Out)
-			fmt.Fprint(v.Out, _ANSI_ERASE_LINE)
-			y++
+		if y < height-1 {
+			fmt.Fprint(v.Out, _ANSI_ERASE_SCRN)
+			for _y := y; _y < height-1; _y++ {
+				fmt.Fprintln(v.Out)
+			}
+			fmt.Fprintf(v.Out, _ANSI_UP_N, height-1-y)
 		}
 		fmt.Fprint(v.Out, _ANSI_RESET)
 	viewEnd:
