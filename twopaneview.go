@@ -242,7 +242,6 @@ func (v View) Run() error {
 	if v.StatusLine == nil {
 		v.StatusLine = strings.Repeat("=", width-1)
 	}
-	scrollup_first := true
 	for {
 		y := v.view(width, listHeight, headY, cursorY)
 		fmt.Fprint(v.Out, "\n"+_ANSI_REVERSE)
@@ -267,13 +266,10 @@ func (v View) Run() error {
 		}
 		if y < height-1 {
 			fmt.Fprint(v.Out, _ANSI_ERASE_SCRN)
-			if scrollup_first {
-				scrollup_first = false
-				for _y := y; _y < height-1; _y++ {
-					fmt.Fprintln(v.Out)
-				}
-				fmt.Fprintf(v.Out, _ANSI_UP_N, height-1-y)
+			for _y := y; _y < height-1; _y++ {
+				fmt.Fprintln(v.Out)
 			}
+			fmt.Fprintf(v.Out, _ANSI_UP_N, height-1-y)
 		}
 		fmt.Fprint(v.Out, _ANSI_RESET)
 	viewEnd:
