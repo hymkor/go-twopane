@@ -111,7 +111,7 @@ func truncate(s string, max int) (int, string) {
 	return len(s), buffer.String()
 }
 
-func (v *View) view(width, height, headY, cursorY int) int {
+func (v *View) draw(width, height, headY, cursorY int) int {
 	newline := _ANSI_RESET
 	if v.cache == nil {
 		v.cache = map[int]string{}
@@ -243,7 +243,7 @@ func (v View) Run() error {
 		v.StatusLine = strings.Repeat("=", width-1)
 	}
 	for {
-		y := v.view(width, listHeight, headY, cursorY)
+		y := v.draw(width, listHeight, headY, cursorY)
 		fmt.Fprint(v.Out, "\n"+_ANSI_REVERSE)
 		_, statusLine := truncate(fmt.Sprint(v.StatusLine), width-1)
 		fmt.Fprint(v.Out, statusLine)
