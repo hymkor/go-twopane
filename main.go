@@ -8,8 +8,9 @@ import (
 	"unicode"
 
 	"github.com/mattn/go-colorable"
-	"github.com/mattn/go-runewidth"
 	"github.com/mattn/go-tty"
+
+	"github.com/zetamatta/go-termgap/hybrid"
 )
 
 const (
@@ -95,11 +96,7 @@ func truncate(s string, max int) (int, string) {
 					buffer.WriteByte(' ')
 				}
 			} else {
-				if runewidth.IsAmbiguousWidth(c) {
-					w1 = 2
-				} else {
-					w1 = runewidth.RuneWidth(c)
-				}
+				w1 = hybrid.RuneWidth(c)
 				if w+w1 > max {
 					return i, buffer.String()
 				}
