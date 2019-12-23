@@ -202,22 +202,12 @@ func (v View) Run() error {
 	if err != nil {
 		return err
 	}
-	quit := make(chan struct{})
 	ws := tty1.SIGWINCH()
 	go func() {
-		for {
-			select {
-			case <-quit:
-				return
-			case <-ws:
-			}
+		for _ = range ws {
 		}
 	}()
-
-	defer func() {
-		tty1.Close()
-		quit <- struct{}{}
-	}()
+	defer tty1.Close()
 
 	width, height, err := tty1.Size()
 	if err != nil {
