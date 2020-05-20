@@ -231,6 +231,8 @@ func (v View) Run() error {
 	listHeight := height - v.ViewHeight
 
 	if v.Out == nil {
+		disableColors := colorable.EnableColorsStdout(nil)
+		defer disableColors()
 		v.Out = colorable.NewColorableStdout()
 	}
 	fmt.Fprint(v.Out, _ANSI_CURSOR_OFF)
