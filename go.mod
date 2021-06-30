@@ -7,5 +7,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mattn/go-tty v0.0.3
 	github.com/zetamatta/go-termgap v0.0.0-20191117090052-034bc34d33c1
-	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299
+	github.com/zetamatta/go-windows-mbcs v0.0.0-20210628140241-28bccc005d0f
+	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
 )
