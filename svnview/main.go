@@ -4,11 +4,14 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/zetamatta/go-twopane"
+	"github.com/zetamatta/go-windows-mbcs"
 )
 
 type Path struct {
@@ -36,6 +39,36 @@ func (this *LogEntry) Title(_ interface{}) string {
 	return this.title
 }
 
+func (this *LogEntry) diff(contents []string) ([]string, error) {
+	rev, err := strconv.Atoi(this.Revision)
+	if err != nil {
+		return nil, err
+	}
+	cmd := exec.Command("svn", "diff", fmt.Sprintf("-r%d:%d", rev-1, rev))
+	in, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	defer in.Close()
+
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	defer cmd.Wait()
+
+	sc := mbcs.NewFilter(in, mbcs.ACP)
+	sc.ForceGuessAlways()
+	for sc.Scan() {
+		contents = append(contents, sc.Text())
+	}
+	err = sc.Err()
+	if err != io.EOF {
+		err = nil
+	}
+	return contents, err
+}
+
 func (this *LogEntry) Contents(_ interface{}) []string {
 	if this.contents == nil {
 		this.contents = strings.Split(this.Msg, "\n")
@@ -43,6 +76,12 @@ func (this *LogEntry) Contents(_ interface{}) []string {
 		for _, path1 := range this.Path {
 			this.contents = append(this.contents,
 				fmt.Sprintf("%s %s", path1.Action, path1.Text))
+		}
+		contents, err := this.diff(this.contents)
+		if err != nil {
+			this.contents = append(this.contents, err.Error())
+		} else {
+			this.contents = contents
 		}
 	}
 	return this.contents
