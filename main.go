@@ -10,7 +10,7 @@ import (
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-tty"
 
-	"github.com/zetamatta/go-termgap/hybrid"
+	"github.com/hymkor/go-termgap/hybrid"
 )
 
 const (

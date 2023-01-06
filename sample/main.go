@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zetamatta/go-twopane"
+	"github.com/hymkor/go-twopane"
 )
 
 type Row string

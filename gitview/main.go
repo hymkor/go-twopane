@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/zetamatta/go-twopane"
+	"github.com/hymkor/go-twopane"
 )
 
 type Row struct {

@@ -10,8 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zetamatta/go-twopane"
-	"github.com/zetamatta/go-windows-mbcs"
+	"github.com/nyaosorg/go-windows-mbcs"
+
+	"github.com/hymkor/go-twopane"
 )
 
 type Path struct {
