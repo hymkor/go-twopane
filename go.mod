@@ -6,8 +6,9 @@ require (
 	github.com/hymkor/go-termgap v0.1.0
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-tty v0.0.4
-	github.com/nyaosorg/go-windows-mbcs v0.0.0-20220625075624-7e48d6c9b323
-	golang.org/x/sys v0.4.0
+	github.com/nyaosorg/go-windows-mbcs v0.3.1
+	golang.org/x/sys v0.5.0
+	golang.org/x/text v0.6.0
 )
 
 require (

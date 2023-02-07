@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -9,6 +10,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/transform"
 
 	"github.com/nyaosorg/go-windows-mbcs"
 
@@ -58,8 +61,7 @@ func (this *LogEntry) diff(contents []string) ([]string, error) {
 	}
 	defer cmd.Wait()
 
-	sc := mbcs.NewFilter(in, mbcs.ACP)
-	sc.ForceGuessAlways()
+	sc := bufio.NewScanner(transform.NewReader(in, mbcs.Decoder{CP: mbcs.ACP}))
 	for sc.Scan() {
 		contents = append(contents, sc.Text())
 	}
