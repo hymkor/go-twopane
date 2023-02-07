@@ -61,7 +61,7 @@ func (this *LogEntry) diff(contents []string) ([]string, error) {
 	}
 	defer cmd.Wait()
 
-	sc := bufio.NewScanner(transform.NewReader(in, mbcs.Decoder{CP: mbcs.ACP}))
+	sc := bufio.NewScanner(transform.NewReader(in, mbcs.AutoDecoder{CP: mbcs.ACP}))
 	for sc.Scan() {
 		contents = append(contents, sc.Text())
 	}
